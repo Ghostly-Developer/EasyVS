@@ -1,9 +1,22 @@
+<# : Batch launcher. PowerShell reads everything up to the closing mark below as a comment.
+@echo off
+rem Double-click to open the "Open with VS Code" setup window.
+rem Command line: OpenWithVSCode.cmd -Install [-NoFiles] [-Label "..."] [-ClassicMenu] | -Uninstall
+set "OWV_PS1=%TEMP%\OpenWithVSCode-setup.ps1"
+copy /y "%~f0" "%OWV_PS1%" >nul || (echo Could not write to the TEMP folder. & pause & exit /b 1)
+if "%~1"=="" (
+    start "" "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%OWV_PS1%"
+) else (
+    "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "%OWV_PS1%" %*
+)
+exit /b %errorlevel%
+#>
 <#
 .SYNOPSIS
     Adds "Open with VS Code" to the Windows File Explorer right-click menu.
 
 .DESCRIPTION
-    Run it with no arguments (or double-click Setup.cmd) to open the setup window.
+    Run it with no arguments (double-click OpenWithVSCode.cmd or .exe) to open the setup window.
 
     Installing:
       - adds the menu entry for folders, folder backgrounds, drives and files
@@ -42,14 +55,14 @@
     No console output and no pop-ups.
 
 .EXAMPLE
-    .\OpenWithVSCode.ps1
+    OpenWithVSCode.cmd
     Opens the setup window.
 .EXAMPLE
-    .\OpenWithVSCode.ps1 -Install -NoFiles -Label "Code here"
+    OpenWithVSCode.cmd -Install -NoFiles -Label "Code here"
 .EXAMPLE
-    .\OpenWithVSCode.ps1 -Install -CodePath "D:\Apps\VSCode\Code.exe"
+    OpenWithVSCode.cmd -Install -CodePath "D:\Apps\VSCode\Code.exe"
 .EXAMPLE
-    .\OpenWithVSCode.ps1 -Uninstall
+    OpenWithVSCode.cmd -Uninstall
 #>
 param(
     [switch]$Install,
@@ -244,7 +257,7 @@ function Install-App {
     }
     if ([string]::IsNullOrWhiteSpace($MenuText)) { throw 'The menu text cannot be empty.' }
     if (-not $Where -or $Where.Count -eq 0) { throw 'Pick at least one place for the menu entry.' }
-    if (-not $PSCommandPath) { throw 'Run this from the OpenWithVSCode.ps1 file.' }
+    if (-not $PSCommandPath) { throw 'Run this from OpenWithVSCode.cmd or OpenWithVSCode.exe.' }
 
     # 1. Keep a copy of this script, so uninstalling works after the download folder is deleted.
     $target = Join-Path $InstallDir $ScriptFileName
